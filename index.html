@@ -90,12 +90,11 @@
       width: 40px; display: flex; align-items: center; justify-content: center;
       color: #CCC; font-size: 18px; cursor: grab; flex-shrink: 0;
       touch-action: none; user-select: none; order: 99;
-      border-left: 1px solid var(--border);
     }
     .drag-handle:active { color: #999; }
 
     .card-content {
-      flex: 1; padding: 12px 8px 12px 4px;
+      flex: 1; padding: 12px 8px 12px 14px;
       display: flex; flex-direction: column; gap: 4px;
       cursor: pointer; min-width: 0;
     }
@@ -121,11 +120,10 @@
       touch-action: manipulation;
     }
     .card-actions button:active { background: rgba(0,0,0,0.05); }
-    .card-arrow { color: #CCC; font-size: 20px; padding-right: 8px; display: flex; align-items: center; }
 
     /* Checkbox */
     .check-area {
-      display: flex; align-items: center; padding: 0 4px;
+      display: flex; align-items: center; padding: 0 2px 0 12px;
       flex-shrink: 0;
     }
     .check-area input[type="checkbox"] {
@@ -501,9 +499,7 @@ function renderProjects() {
       <div class="card-actions">
         <button onclick="openEditProject('${p.id}')" title="Bewerken">⋯</button>
       </div>
-      <div class="card-arrow">›</div>
       <div class="drag-handle">≡</div>
-      <div class="card-arrow">›</div>
     </div>
   `}).join('') + '</div>';
   main.innerHTML = html;
@@ -537,9 +533,7 @@ function renderOnderdelen() {
       <div class="card-actions">
         <button onclick="openEditOnderdeel('${o.id}')" title="Bewerken">⋯</button>
       </div>
-      <div class="card-arrow">›</div>
       <div class="drag-handle">≡</div>
-      <div class="card-arrow">›</div>
     </div>
   `}).join('') + '</div>';
   main.innerHTML = html;
