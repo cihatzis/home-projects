@@ -429,16 +429,27 @@ async function loadAndRender() {
 // =====================================================
 // Render: Projects
 // =====================================================
+function clickProject(id) {
+  const p = state.projects.find(x => x.id === id);
+  if (p) navigate('onderdelen', p);
+}
+
+function clickOnderdeel(id) {
+  const o = state.onderdelen.find(x => x.id === id);
+  if (o) navigate('taken', { id: o.id, onderdeel: o.onderdeel });
+}
+
 function renderProjects() {
   const main = document.getElementById('app-content');
-  if (!state.projects.length) {
-    main.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Nog geen projecten.<br>Tik op + om er een toe te voegen.</p></div>';
+  const visible = state.projects.filter(p => p.status !== 'Gereed');
+  if (!visible.length) {
+    main.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Geen actieve projecten.</p></div>';
     return;
   }
-  const html = '<div id="sortable-list">' + state.projects.map(p => `
+  const html = '<div id="sortable-list">' + visible.map(p => `
     <div class="card" data-id="${p.id}">
       <div class="drag-handle">⠿</div>
-      <div class="card-content" onclick="navigate('onderdelen', ${esc(JSON.stringify(p))})">
+      <div class="card-content" onclick="clickProject('${p.id}')">
         <div class="card-title">${esc(p.project)}</div>
         <div class="card-meta">
           <span class="chip chip-${statusClass(p.status)}">${esc(p.status)}</span>
@@ -461,11 +472,12 @@ function renderProjects() {
 // =====================================================
 function renderOnderdelen() {
   const main = document.getElementById('app-content');
-  if (!state.onderdelen.length) {
-    main.innerHTML = '<div class="empty"><div class="empty-icon">🔧</div><p>Nog geen onderdelen.<br>Tik op + om er een toe te voegen.</p></div>';
+  const visible = state.onderdelen.filter(o => !o.gereed);
+  if (!visible.length) {
+    main.innerHTML = '<div class="empty"><div class="empty-icon">🔧</div><p>Geen actieve onderdelen.</p></div>';
     return;
   }
-  const html = '<div id="sortable-list">' + state.onderdelen.map(o => {
+  const html = '<div id="sortable-list">' + visible.map(o => {
     const takenCount = o.taken ? o.taken.length : 0;
     return `
     <div class="card" data-id="${o.id}">
@@ -473,7 +485,7 @@ function renderOnderdelen() {
       <div class="check-area">
         <input type="checkbox" ${o.gereed ? 'checked' : ''} onchange="toggleGereed('onderdelen','${o.id}',this.checked)">
       </div>
-      <div class="card-content" onclick="navigate('taken', ${esc(JSON.stringify({id:o.id,onderdeel:o.onderdeel}))})">
+      <div class="card-content" onclick="clickOnderdeel('${o.id}')">
         <div class="card-title ${o.gereed ? 'done' : ''}">${esc(o.onderdeel)}</div>
         <div class="card-meta">
           ${takenCount ? `<span class="chip chip-count">${takenCount} ${takenCount === 1 ? 'taak' : 'taken'}</span>` : ''}
@@ -494,11 +506,12 @@ function renderOnderdelen() {
 // =====================================================
 function renderTaken() {
   const main = document.getElementById('app-content');
-  if (!state.taken.length) {
-    main.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><p>Nog geen taken.<br>Tik op + om er een toe te voegen.</p></div>';
+  const visible = state.taken.filter(t => !t.gereed);
+  if (!visible.length) {
+    main.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><p>Geen actieve taken.</p></div>';
     return;
   }
-  const html = '<div id="sortable-list">' + state.taken.map(t => `
+  const html = '<div id="sortable-list">' + visible.map(t => `
     <div class="card" data-id="${t.id}">
       <div class="drag-handle">⠿</div>
       <div class="check-area">
