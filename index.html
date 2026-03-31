@@ -525,7 +525,10 @@ function renderOnderdelen() {
         <input type="checkbox" ${o.gereed ? 'checked' : ''} onchange="toggleGereed('onderdelen','${o.id}',this.checked)">
       </div>
       <div class="card-content" onclick="clickOnderdeel('${o.id}')">
-        <div class="card-title ${o.gereed ? 'done' : ''}">${esc(o.onderdeel)}${activeTaken ? ` <span style="color:var(--text-secondary);font-weight:400">(${activeTaken})</span>` : ''}</div>
+        <div class="card-title ${o.gereed ? 'done' : ''}">${esc(o.onderdeel)}</div>
+        <div class="card-meta">
+          ${activeTaken ? `<span class="chip chip-count">${activeTaken} ${activeTaken === 1 ? 'taak' : 'taken'}</span>` : ''}
+        </div>
       </div>
       <div class="card-actions">
         <button onclick="openEditOnderdeel('${o.id}')" title="Bewerken">⋯</button>
