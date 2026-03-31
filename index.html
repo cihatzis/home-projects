@@ -81,11 +81,10 @@
       margin-bottom: 8px;
       display: flex; align-items: stretch;
       overflow: hidden;
-      transition: transform 0.15s, box-shadow 0.15s;
     }
-    .card.sortable-ghost { opacity: 0.3; background: #E3F2FD; }
-    .card.sortable-chosen { box-shadow: 0 4px 16px rgba(0,0,0,0.2); transform: scale(1.02); }
-    .card.sortable-drag { box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+    .card.sortable-ghost { opacity: 0.3; }
+    .card.sortable-chosen { box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .card.sortable-drag { opacity: 0.9; box-shadow: 0 8px 24px rgba(0,0,0,0.3); transform: rotate(1deg); }
 
     .drag-handle {
       width: 36px; display: flex; align-items: center; justify-content: center;
@@ -465,7 +464,7 @@ function clickOnderdeel(id) {
 }
 
 function showAllToggleHtml() {
-  return `<div class="toggle-bar"><button class="toggle-all-btn ${state.showAll ? 'active' : ''}" onclick="toggleShowAll()">${state.showAll ? '👁 Alles' : '👁 Actief'}</button></div>`;
+  return `<div class="toggle-bar"><button class="toggle-all-btn ${state.showAll ? 'active' : ''}" onclick="toggleShowAll()">${state.showAll ? 'Alles' : 'Actief'}</button></div>`;
 }
 
 function renderProjects() {
@@ -480,7 +479,7 @@ function renderProjects() {
     const isGereed = p.status === 'Gereed';
     return `
     <div class="card ${isGereed ? 'card-gereed' : ''}" data-id="${p.id}">
-      <div class="drag-handle">⠿</div>
+      <div class="drag-handle">≡</div>
       <div class="card-content" onclick="clickProject('${p.id}')">
         <div class="card-title ${isGereed ? 'done' : ''}">${esc(p.project)}</div>
         <div class="card-meta">
@@ -490,7 +489,7 @@ function renderProjects() {
         ${p.opmerkingen ? `<div class="card-remark">${esc(p.opmerkingen)}</div>` : ''}
       </div>
       <div class="card-actions">
-        <button onclick="openEditProject('${p.id}')" title="Bewerken">✎</button>
+        <button onclick="openEditProject('${p.id}')" title="Bewerken">⋯</button>
       </div>
       <div class="card-arrow">›</div>
     </div>
@@ -514,7 +513,7 @@ function renderOnderdelen() {
     const takenCount = o.taken ? o.taken.length : 0;
     return `
     <div class="card ${o.gereed ? 'card-gereed' : ''}" data-id="${o.id}">
-      <div class="drag-handle">⠿</div>
+      <div class="drag-handle">≡</div>
       <div class="check-area">
         <input type="checkbox" ${o.gereed ? 'checked' : ''} onchange="toggleGereed('onderdelen','${o.id}',this.checked)">
       </div>
@@ -525,7 +524,7 @@ function renderOnderdelen() {
         </div>
       </div>
       <div class="card-actions">
-        <button onclick="openEditOnderdeel('${o.id}')" title="Bewerken">✎</button>
+        <button onclick="openEditOnderdeel('${o.id}')" title="Bewerken">⋯</button>
       </div>
       <div class="card-arrow">›</div>
     </div>
@@ -547,7 +546,7 @@ function renderTaken() {
   }
   html += '<div id="sortable-list">' + visible.map(t => `
     <div class="card ${t.gereed ? 'card-gereed' : ''}" data-id="${t.id}">
-      <div class="drag-handle">⠿</div>
+      <div class="drag-handle">≡</div>
       <div class="check-area">
         <input type="checkbox" ${t.gereed ? 'checked' : ''} onchange="toggleGereed('taken','${t.id}',this.checked)">
       </div>
@@ -558,7 +557,7 @@ function renderTaken() {
         </div>
       </div>
       <div class="card-actions">
-        <button onclick="openEditTaak('${t.id}')" title="Bewerken">✎</button>
+        <button onclick="openEditTaak('${t.id}')" title="Bewerken">⋯</button>
       </div>
     </div>
   `).join('') + '</div>';
