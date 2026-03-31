@@ -83,9 +83,9 @@
       overflow: hidden;
       transition: transform 0.15s, box-shadow 0.15s;
     }
-    .card:active { transform: scale(0.98); }
-    .card.sortable-ghost { opacity: 0.4; }
-    .card.sortable-chosen { box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .card.sortable-ghost { opacity: 0.3; background: #E3F2FD; }
+    .card.sortable-chosen { box-shadow: 0 4px 16px rgba(0,0,0,0.2); transform: scale(1.02); }
+    .card.sortable-drag { box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
 
     .drag-handle {
       width: 36px; display: flex; align-items: center; justify-content: center;
@@ -256,6 +256,22 @@
     }
     .conn-online { background: var(--status-gereed); }
     .conn-offline { background: #F44336; }
+
+    /* Show-all toggle */
+    .toggle-bar {
+      display: flex; justify-content: flex-end; padding: 0 0 8px;
+    }
+    .toggle-all-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 13px; font-weight: 600; color: var(--text-secondary);
+      cursor: pointer; touch-action: manipulation;
+    }
+    .toggle-all-btn.active {
+      border-color: var(--primary); color: var(--primary); background: #E3F2FD;
+    }
+    .card-gereed { opacity: 0.55; }
   </style>
 </head>
 <body>
@@ -302,7 +318,15 @@ let state = {
   onderdelen: [],
   taken: [],
   channel: null,
+  showAll: false,
+  dragging: false,
 };
+
+function toggleShowAll() {
+  state.showAll = !state.showAll;
+  localStorage.setItem('showAll', state.showAll ? '1' : '0');
+  loadAndRender();
+}
 
 // =====================================================
 // Config
@@ -345,6 +369,7 @@ async function init() {
     return;
   }
 
+  state.showAll = localStorage.getItem('showAll') === '1';
   document.getElementById('app-header').style.display = '';
   document.getElementById('app-content').style.display = '';
   subscribeRealtime();
@@ -439,18 +464,25 @@ function clickOnderdeel(id) {
   if (o) navigate('taken', { id: o.id, onderdeel: o.onderdeel });
 }
 
+function showAllToggleHtml() {
+  return `<div class="toggle-bar"><button class="toggle-all-btn ${state.showAll ? 'active' : ''}" onclick="toggleShowAll()">${state.showAll ? '👁 Alles' : '👁 Actief'}</button></div>`;
+}
+
 function renderProjects() {
   const main = document.getElementById('app-content');
-  const visible = state.projects.filter(p => p.status !== 'Gereed');
+  const visible = state.showAll ? state.projects : state.projects.filter(p => p.status !== 'Gereed');
+  let html = showAllToggleHtml();
   if (!visible.length) {
-    main.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Geen actieve projecten.</p></div>';
+    main.innerHTML = html + '<div class="empty"><div class="empty-icon">📋</div><p>Geen projecten.</p></div>';
     return;
   }
-  const html = '<div id="sortable-list">' + visible.map(p => `
-    <div class="card" data-id="${p.id}">
+  html += '<div id="sortable-list">' + visible.map(p => {
+    const isGereed = p.status === 'Gereed';
+    return `
+    <div class="card ${isGereed ? 'card-gereed' : ''}" data-id="${p.id}">
       <div class="drag-handle">⠿</div>
       <div class="card-content" onclick="clickProject('${p.id}')">
-        <div class="card-title">${esc(p.project)}</div>
+        <div class="card-title ${isGereed ? 'done' : ''}">${esc(p.project)}</div>
         <div class="card-meta">
           <span class="chip chip-${statusClass(p.status)}">${esc(p.status)}</span>
           ${p.planning ? `<span class="chip chip-planning">${esc(p.planning)}</span>` : ''}
@@ -462,7 +494,7 @@ function renderProjects() {
       </div>
       <div class="card-arrow">›</div>
     </div>
-  `).join('') + '</div>';
+  `}).join('') + '</div>';
   main.innerHTML = html;
   initSortable('sortable-list', onReorderProjects);
 }
@@ -472,15 +504,16 @@ function renderProjects() {
 // =====================================================
 function renderOnderdelen() {
   const main = document.getElementById('app-content');
-  const visible = state.onderdelen.filter(o => !o.gereed);
+  const visible = state.showAll ? state.onderdelen : state.onderdelen.filter(o => !o.gereed);
+  let html = showAllToggleHtml();
   if (!visible.length) {
-    main.innerHTML = '<div class="empty"><div class="empty-icon">🔧</div><p>Geen actieve onderdelen.</p></div>';
+    main.innerHTML = html + '<div class="empty"><div class="empty-icon">🔧</div><p>Geen onderdelen.</p></div>';
     return;
   }
-  const html = '<div id="sortable-list">' + visible.map(o => {
+  html += '<div id="sortable-list">' + visible.map(o => {
     const takenCount = o.taken ? o.taken.length : 0;
     return `
-    <div class="card" data-id="${o.id}">
+    <div class="card ${o.gereed ? 'card-gereed' : ''}" data-id="${o.id}">
       <div class="drag-handle">⠿</div>
       <div class="check-area">
         <input type="checkbox" ${o.gereed ? 'checked' : ''} onchange="toggleGereed('onderdelen','${o.id}',this.checked)">
@@ -506,13 +539,14 @@ function renderOnderdelen() {
 // =====================================================
 function renderTaken() {
   const main = document.getElementById('app-content');
-  const visible = state.taken.filter(t => !t.gereed);
+  const visible = state.showAll ? state.taken : state.taken.filter(t => !t.gereed);
+  let html = showAllToggleHtml();
   if (!visible.length) {
-    main.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><p>Geen actieve taken.</p></div>';
+    main.innerHTML = html + '<div class="empty"><div class="empty-icon">✅</div><p>Geen taken.</p></div>';
     return;
   }
-  const html = '<div id="sortable-list">' + visible.map(t => `
-    <div class="card" data-id="${t.id}">
+  html += '<div id="sortable-list">' + visible.map(t => `
+    <div class="card ${t.gereed ? 'card-gereed' : ''}" data-id="${t.id}">
       <div class="drag-handle">⠿</div>
       <div class="check-area">
         <input type="checkbox" ${t.gereed ? 'checked' : ''} onchange="toggleGereed('taken','${t.id}',this.checked)">
@@ -540,10 +574,15 @@ function initSortable(containerId, onEnd) {
   if (!el) return;
   new Sortable(el, {
     handle: '.drag-handle',
-    animation: 200,
+    animation: 250,
+    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
-    onEnd: onEnd,
+    dragClass: 'sortable-drag',
+    forceFallback: true,
+    fallbackTolerance: 3,
+    onStart: () => { state.dragging = true; },
+    onEnd: (evt) => { state.dragging = false; onEnd(evt); },
   });
 }
 
@@ -856,13 +895,13 @@ function getSelectedDoor() {
 function subscribeRealtime() {
   state.channel = sb.channel('db-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'projecten' }, () => {
-      if (state.view === 'projects') loadAndRender();
+      if (state.view === 'projects' && !state.dragging) loadAndRender();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'onderdelen' }, () => {
-      if (state.view === 'onderdelen') loadAndRender();
+      if (state.view === 'onderdelen' && !state.dragging) loadAndRender();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'taken' }, () => {
-      if (state.view === 'taken') loadAndRender();
+      if (state.view === 'taken' && !state.dragging) loadAndRender();
     })
     .subscribe();
 }
