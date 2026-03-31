@@ -519,6 +519,8 @@ function renderOnderdelen() {
   }
   html += '<div id="sortable-list">' + visible.map(o => {
     const activeTaken = o.taken ? o.taken.filter(t => !t.gereed).length : 0;
+    const totalTaken = o.taken ? o.taken.length : 0;
+    const takenCount = state.showAll ? totalTaken : activeTaken;
     return `
     <div class="card ${o.gereed ? 'card-gereed' : ''}" data-id="${o.id}">
       <div class="check-area">
@@ -527,7 +529,7 @@ function renderOnderdelen() {
       <div class="card-content" onclick="clickOnderdeel('${o.id}')">
         <div class="card-title ${o.gereed ? 'done' : ''}">${esc(o.onderdeel)}</div>
         <div class="card-meta">
-          ${activeTaken ? `<span class="chip chip-count">${activeTaken} ${activeTaken === 1 ? 'taak' : 'taken'}</span>` : ''}
+          ${takenCount ? `<span class="chip chip-count">${takenCount} ${takenCount === 1 ? 'taak' : 'taken'}</span>` : ''}
         </div>
       </div>
       <div class="card-actions">
