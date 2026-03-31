@@ -1,4 +1,4 @@
-const CACHE_NAME = 'projecten-v3';
+const CACHE_NAME = 'projecten-v4';
 const ASSETS = [
   '/',
   '/index.html',
@@ -30,29 +30,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Don't cache CDN resources aggressively - network first
-  if (url.hostname.includes('cdn.jsdelivr.net')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
-  }
-
-  // Local assets: cache first, then network
+  // Network first for everything - use cache only as fallback (offline)
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetched = fetch(event.request).then((response) => {
+    fetch(event.request)
+      .then((response) => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         return response;
-      });
-      return cached || fetched;
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
